@@ -4,6 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import * as SliderPrimitive from "@radix-ui/react-slider"
 
+interface DataPoint {
+  month: string;
+  performanceScore: number;
+  profitMargin: number;
+  complianceScore: number;
+}
+
 const CustomSlider = ({ value, onValueChange, max, step, label }: {
   value: number;
   onValueChange: (value: number) => void;
@@ -32,14 +39,14 @@ const CustomSlider = ({ value, onValueChange, max, step, label }: {
 );
 
 const GovContractorTwin = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<DataPoint[]>([]);
   const [basePerformance, setBasePerformance] = useState(80);
   const [baseProfit, setBaseProfit] = useState(15);
   const [baseCompliance, setBaseCompliance] = useState(90);
   const [volatility, setVolatility] = useState(20);
 
   const generateData = useCallback(() => {
-    const newData = Array.from({length: 12}, (_, i) => {
+    const newData: DataPoint[] = Array.from({length: 12}, (_, i) => {
       const variance = (Math.random() - 0.5) * volatility;
       return {
         month: `Month ${i+1}`,
