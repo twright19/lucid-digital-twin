@@ -1,136 +1,91 @@
-'use client'
+import { useState, useEffect } from "react";
+import { Slider } from "@/components/ui/slider";
+import { Card, CardContent } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import * as SliderPrimitive from "@radix-ui/react-slider"
-
-interface DataPoint {
-  month: string;
-  performanceScore: number;
-  profitMargin: number;
-  complianceScore: number;
-}
-
-const CustomSlider = ({ value, onValueChange, max, step, label }: {
-  value: number;
-  onValueChange: (value: number) => void;
-  max: number;
-  step: number;
-  label: string;
-}) => (
-  <div className="space-y-2">
-    <div className="flex justify-between items-center">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <span className="text-sm text-gray-500">{value}%</span>
-    </div>
-    <SliderPrimitive.Root
-      className="relative flex items-center select-none touch-none w-full h-5"
-      value={[value]}
-      max={max}
-      step={step}
-      onValueChange={(values) => onValueChange(values[0])}
-    >
-      <SliderPrimitive.Track className="relative h-2 w-full grow rounded-full bg-gray-200">
-        <SliderPrimitive.Range className="absolute h-full bg-blue-600 rounded-full" />
-      </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-blue-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
-    </SliderPrimitive.Root>
-  </div>
-);
-
-const GovContractorTwin = () => {
-  const [data, setData] = useState<DataPoint[]>([]);
-  const [basePerformance, setBasePerformance] = useState(80);
-  const [baseProfit, setBaseProfit] = useState(15);
-  const [baseCompliance, setBaseCompliance] = useState(90);
-  const [volatility, setVolatility] = useState(20);
-
-  const generateData = useCallback(() => {
-    const newData: DataPoint[] = Array.from({length: 12}, (_, i) => {
-      const variance = (Math.random() - 0.5) * volatility;
-      return {
-        month: `Month ${i+1}`,
-        performanceScore: Math.max(0, Math.min(100, basePerformance + variance)),
-        profitMargin: Math.max(0, Math.min(30, baseProfit + variance/2)),
-        complianceScore: Math.max(0, Math.min(100, baseCompliance + variance))
-      };
-    });
-    setData(newData);
-  }, [basePerformance, baseProfit, baseCompliance, volatility]);
+export default function DigitalTwinSimulator() {
+  const [utilization, setUtilization] = useState(75);
+  const [pricing, setPricing] = useState(200);
+  const [staffing, setStaffing] = useState(10);
+  const [retention, setRetention] = useState(85);
+  const [pipeline, setPipeline] = useState(3);
+  const [recurringRevenue, setRecurringRevenue] = useState(50);
+  const [primeContracts, setPrimeContracts] = useState(70);
+  const [turnover, setTurnover] = useState(10);
+  const [overheadRatio, setOverheadRatio] = useState(4);
+  const [data, setData] = useState([]);
 
   useEffect(() => {
-    generateData();
-  }, [generateData]);
+    const profitMargin = ((utilization / 100) * pricing * staffing * (recurringRevenue / 100)).toFixed(2);
+    const valuation = (profitMargin * 5 * (retention / 100) * (primeContracts / 100)).toFixed(2);
+    setData([
+      { name: "Now", value: parseFloat(profitMargin) },
+      { name: "1 Year", value: parseFloat(profitMargin) * 1.1 },
+      { name: "3 Years", value: parseFloat(valuation) },
+    ]);
+  }, [utilization, pricing, staffing, retention, pipeline, recurringRevenue, primeContracts, turnover, overheadRatio]);
 
   return (
-    <div className="space-y-8 p-6 bg-white rounded-lg shadow">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-6 bg-gray-50 p-6 rounded-lg">
-          <CustomSlider
-            label="Base Performance Score"
-            value={basePerformance}
-            onValueChange={setBasePerformance}
-            max={100}
-            step={1}
-          />
-          <CustomSlider
-            label="Base Profit Margin"
-            value={baseProfit}
-            onValueChange={setBaseProfit}
-            max={30}
-            step={0.5}
-          />
-          <CustomSlider
-            label="Base Compliance Score"
-            value={baseCompliance}
-            onValueChange={setBaseCompliance}
-            max={100}
-            step={1}
-          />
-          <CustomSlider
-            label="Market Volatility"
-            value={volatility}
-            onValueChange={setVolatility}
-            max={50}
-            step={1}
-          />
-        </div>
-
-        <div className="bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Current Settings Impact</h3>
-          <ul className="space-y-3 text-sm text-gray-600">
-            <li className="flex justify-between">
-              <span>Performance Score:</span>
-              <span className="font-medium">{basePerformance}% ± {volatility}%</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Profit Margin:</span>
-              <span className="font-medium">{baseProfit}% ± {volatility/2}%</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Compliance Score:</span>
-              <span className="font-medium">{baseCompliance}% ± {volatility}%</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="h-96 w-full bg-gray-50 p-4 rounded-lg">
-        <ResponsiveContainer>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="performanceScore" stroke="#3b82f6" name="Performance Score" strokeWidth={2} />
-            <Line type="monotone" dataKey="profitMargin" stroke="#10b981" name="Profit Margin" strokeWidth={2} />
-            <Line type="monotone" dataKey="complianceScore" stroke="#ef4444" name="Compliance Score" strokeWidth={2} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    <main className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Digital Twin Business Simulator</h1>
+      
+      <Card>
+        <CardContent className="p-4 space-y-4">
+          <div>
+            <label>Billable Utilization: {utilization}%</label>
+            <Slider value={[utilization]} min={50} max={100} step={1} onValueChange={(v) => setUtilization(v[0])} />
+          </div>
+          <div>
+            <label>Average Pricing ($/hr): {pricing}</label>
+            <Slider value={[pricing]} min={100} max={500} step={10} onValueChange={(v) => setPricing(v[0])} />
+          </div>
+          <div>
+            <label>Staffing: {staffing} employees</label>
+            <Slider value={[staffing]} min={5} max={50} step={1} onValueChange={(v) => setStaffing(v[0])} />
+          </div>
+          <div>
+            <label>Customer Retention: {retention}%</label>
+            <Slider value={[retention]} min={50} max={100} step={1} onValueChange={(v) => setRetention(v[0])} />
+          </div>
+          <div>
+            <label>Sales Pipeline Coverage (x Revenue): {pipeline}</label>
+            <Slider value={[pipeline]} min={1} max={10} step={0.5} onValueChange={(v) => setPipeline(v[0])} />
+          </div>
+          <div>
+            <label>Recurring Revenue: {recurringRevenue}%</label>
+            <Slider value={[recurringRevenue]} min={0} max={100} step={5} onValueChange={(v) => setRecurringRevenue(v[0])} />
+          </div>
+          <div>
+            <label>Prime vs. Subcontractor Mix: {primeContracts}% Prime</label>
+            <Slider value={[primeContracts]} min={0} max={100} step={5} onValueChange={(v) => setPrimeContracts(v[0])} />
+          </div>
+          <div>
+            <label>Employee Turnover Rate: {turnover}%</label>
+            <Slider value={[turnover]} min={0} max={50} step={1} onValueChange={(v) => setTurnover(v[0])} />
+          </div>
+          <div>
+            <label>Billable vs. Overhead Staff Ratio: {overheadRatio}x</label>
+            <Slider value={[overheadRatio]} min={1} max={10} step={0.5} onValueChange={(v) => setOverheadRatio(v[0])} />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-4">
+          <h2 className="text-xl font-semibold">Business Impact</h2>
+          <p>Projected Profit Margin: ${data.length > 0 ? data[0].value : "-"}K</p>
+          <p>Estimated Valuation: ${data.length > 2 ? data[2].value : "-"}K</p>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="value" stroke="#8884d8" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </main>
   );
-};
-
-export default GovContractorTwin;
+}
